@@ -1,11 +1,19 @@
 using UnityEngine;
-
+using System.Collections;   // Necesario para IEnumerator
+using UnityEngine.UI;
 public class PlayerMovement : MonoBehaviour
 {
     public float speed = 5f;
     public float jumpForce = 12f;
-    public int health = 3;
 
+    [Header("Health")]
+    public int health;
+    public int maxHealth = 3;
+    public Image healthImg;
+    private bool isImmune;
+    public float immunityTime = 1f;  // segundos de inmunidad tras recibir daño
+
+    [Header("Ground Check")]
     public Transform groundCheck;
     public float groundCheckRadius = 0.2f;
     public LayerMask groundLayer;
@@ -18,6 +26,7 @@ public class PlayerMovement : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
+        health = maxHealth;   // vida inicial
     }
 
     void Update()
@@ -35,34 +44,48 @@ public class PlayerMovement : MonoBehaviour
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
         }
 
-        // Simular daño con Q
-        // if (Input.GetKeyDown(KeyCode.Q))
-        // {
-        //     TakeDamage();
-        // }
+        // ✅ CORREGIDO: conversión explícita a float
+        healthImg.fillAmount = (float)health / maxHealth;
+
+        if (health > maxHealth)
+        {
+            health = maxHealth;
+        }
     }
 
-    void TakeDamage()
+    void TakeDamage(int damageAmount)
     {
-        health--;
+        health -= damageAmount;
 
         if (health > 0)
         {
             anim.SetTrigger("Hurt");  // animación de recibir daño
+            StartCoroutine(Immunity()); // activar inmunidad temporal
         }
         else
         {
             anim.SetTrigger("Death");   // animación de muerte
-
-            this.enabled = false;
+            this.enabled = false;       // desactivar movimiento
+            print("player dead");       // aquí luego puedes poner pantalla de Game Over
         }
     }
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Enemy"))
+        if (collision.CompareTag("Enemy") && !isImmune)
         {
-            TakeDamage();
+            // obtener daño del enemigo
+            Enemy enemy = collision.GetComponent<Enemy>();
+            int damageToGive = enemy != null ? enemy.damageToGive : 1; // valor por defecto 1
+
+            TakeDamage(damageToGive);
         }
     }
-    
+
+    IEnumerator Immunity()
+    {
+        isImmune = true;
+        yield return new WaitForSeconds(immunityTime);
+        isImmune = false;
+    }
 }
