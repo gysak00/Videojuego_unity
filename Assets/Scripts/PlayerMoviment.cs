@@ -14,10 +14,20 @@ public class PlayerMovement : MonoBehaviour
     private Rigidbody2D rb;
     private Animator anim;
 
+    public GameObject gameOverImg;
+
+    public bool isDead;
+
     void Start()
     {
+        Time.timeScale = 1; // Asegura que el tiempo esté normal al iniciar
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
+<<<<<<< Updated upstream
+=======
+        health = maxHealth;   // vida inicial
+        gameOverImg.SetActive(false);
+>>>>>>> Stashed changes
     }
 
     void Update()
@@ -52,6 +62,8 @@ public class PlayerMovement : MonoBehaviour
         }
         else
         {
+            Time.timeScale = 0;       // pausar el juego
+            gameOverImg.SetActive(true);
             anim.SetTrigger("Death");   // animación de muerte
 
             this.enabled = false;
@@ -64,5 +76,16 @@ public class PlayerMovement : MonoBehaviour
             TakeDamage();
         }
     }
+<<<<<<< Updated upstream
+=======
+
+    IEnumerator Immunity()
+    {
+        isImmune = true;
+        yield return new WaitForSeconds(immunityTime);
+        isImmune = false;
+    }
+
+>>>>>>> Stashed changes
     
 }
